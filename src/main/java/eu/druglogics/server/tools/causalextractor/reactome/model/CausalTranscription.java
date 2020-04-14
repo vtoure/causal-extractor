@@ -1,6 +1,6 @@
 package eu.druglogics.server.tools.causalextractor.reactome.model;
 
-import eu.druglogics.server.tools.causalextractor.mitab.PSIWriter;
+import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
 import eu.druglogics.server.tools.causalextractor.reactome.DataFactory;
 import org.reactome.server.graph.domain.model.*;
 import psidev.psi.mi.tab.model.*;
@@ -58,35 +58,52 @@ public class CausalTranscription {
      * @param writerTranscription PSIWriter - object to write the causal interaction
      * @throws IOException
      */
-    public void writeGeneRegulation(PSIWriter writerTranscription) throws IOException {
-        Interactor reactomeTarget = new Interactor(this.output, 1, AnnotationUtils.TARGET);
+    public void writeGeneRegulation(PSIWriter writerTranscription, String type) throws IOException {
+        //SOURCE ENTITY = REGULATOR = always a COMPLEX of TF-TG
+        Interactor reactomeRegulator = new Interactor(this.source, 1, AnnotationUtils.REGULATOR);
+        List<psidev.psi.mi.tab.model.Interactor> regulators = reactomeRegulator.createParticipant(writerTranscription);
+
+        Interactor reactomeTarget;
+        if(type == "gene"){
+            //TARGET ENTITY = GENE
+            reactomeTarget = new Interactor(this.input, DataFactory.getStoichiometry(this.rle, this.input), AnnotationUtils.TARGET);
+        }
+        else{
+            //TARGET ENTITY = PROTEIN
+            reactomeTarget = new Interactor(this.output, DataFactory.getStoichiometry(this.rle, this.output), AnnotationUtils.TARGET);
+
+        }
+
         List<psidev.psi.mi.tab.model.Interactor> targets = reactomeTarget.createParticipant(writerTranscription);
-//        //SOURCE ENTITY = REGULATOR = always a COMPLEX of TF-TG
-//        Interactor reactomeRegulator = new Interactor(this.source, 1, AnnotationUtils.REGULATOR);
-//
-//        List<psidev.psi.mi.tab.model.Interactor> regulators = reactomeRegulator.createParticipant(writerTranscription);
-//        //TARGET ENTITY = GENE
-//        Interactor reactomeTarget = new Interactor(this.input, DataFactory.getStoichiometry(this.rle, this.input), AnnotationUtils.TARGET);
-//        List<psidev.psi.mi.tab.model.Interactor> targets = reactomeTarget.createParticipant(writerTranscription);
-//
-//        //Causal PSIWriter 1: TF-TG complex regulates the GENE
-//        for (psidev.psi.mi.tab.model.Interactor regulator : regulators) {
-//            for (psidev.psi.mi.tab.model.Interactor target : targets) {
-//                BinaryInteraction binaryInteraction = new BinaryInteractionImpl(regulator, target);
-//                AnnotationUtils.setDefaultInteraction(binaryInteraction, this.rle, this.publications);
-//                binaryInteraction.setInteractionTypes(AnnotationUtils.FUNCTIONAL_ASSOCIATION);
-//                if (this.regulation instanceof NegativeGeneExpressionRegulation) {
-//                    // Gene's transcription is down-regulated
-//                    binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES);
-//                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSCRIPTIONAL_REG);
-//                    writerTranscription.appendInFile(binaryInteraction);
-//                } else {// Gene expression is up-regulated and enables the increase of the protein's quantity.
-//                    binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES);
-//                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSCRIPTIONAL_REG);
-//                    writerTranscription.appendInFile(binaryInteraction);
-//                }
-//            }
-//        }
+
+        //Causal PSIWriter 1: TF-TG complex regulates the GENE
+        for (psidev.psi.mi.tab.model.Interactor regulator : regulators) {
+            for (psidev.psi.mi.tab.model.Interactor target : targets) {
+                BinaryInteraction binaryInteraction = new BinaryInteractionImpl(regulator, target);
+                AnnotationUtils.setDefaultInteraction(binaryInteraction, this.rle, this.publications);
+                binaryInteraction.setInteractionTypes(AnnotationUtils.FUNCTIONAL_ASSOCIATION);
+                if (this.regulation instanceof NegativeGeneExpressionRegulation) {
+                    // Gene's transcription is down-regulated
+                    if(type == "gene") {
+                        binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES);
+                    }
+                    else{
+                        binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES_REPRESSION);
+                    }
+                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSCRIPTIONAL_REG);
+                    writerTranscription.appendInFile(binaryInteraction);
+                } else {// Gene expression is up-regulated and enables the increase of the protein's quantity.
+                    if(type == "gene") {
+                        binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES);
+                    }
+                    else{
+                        binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES_EXPRESSION);
+                    }
+                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSCRIPTIONAL_REG);
+                    writerTranscription.appendInFile(binaryInteraction);
+                }
+            }
+        }
     }
 
     /**

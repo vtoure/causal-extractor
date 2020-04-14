@@ -1,4 +1,4 @@
-package eu.druglogics.server.tools.causalextractor.mitab;
+package eu.druglogics.server.tools.causalextractor.export;
 
 
 import psidev.psi.mi.tab.model.*;

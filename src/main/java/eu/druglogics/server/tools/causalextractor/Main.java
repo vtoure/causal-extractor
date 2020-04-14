@@ -3,8 +3,11 @@ package eu.druglogics.server.tools.causalextractor;
 
 import com.martiansoftware.jsap.*;
 import com.martiansoftware.jsap.Parameter;
+import eu.druglogics.server.tools.causalextractor.export.Mitab28;
+import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
 import eu.druglogics.server.tools.causalextractor.reactome.DataFactory;
 
+import eu.druglogics.server.tools.causalextractor.reactome.model.CausalTranscription;
 import org.reactome.server.graph.service.GeneralService;
 
 import org.reactome.server.graph.utils.ReactomeGraphCore;
@@ -55,25 +58,25 @@ public class Main {
         Collection<String> activeEntities = DataFactory.getActiveEntities();
         System.out.println("active entities in Reactome: " + activeEntities.size());
 
-        // Initialize PSI-MI TAB2.8 file (will contain all data)
-//        String outputFile = "./results/reactome_" + genericService.getDBInfo().getVersion() + "_causality.txt";
-//        PSIWriter psiWriter = new PSIWriter(outputFile);
-//        psiWriter.initiateFile();
-//
-//        // Causal interactions extracted from Transcription events
-//        Collection<CausalTranscription> causalTranscriptions = DataFactory.getCausalTranscription();
-//        System.out.println("Number of transcription reactions: " + causalTranscriptions.size() + "\n");
-//
-//        for (CausalTranscription causalTranscription : causalTranscriptions) {
-//            causalTranscription.writeGeneRegulation(psiWriter);
-//        }
+        //Initialize PSI-MI TAB2.8 file (will contain all data)
+        String outputFile = "./results/reactome_" + genericService.getDBInfo().getVersion() + "_causality.txt";
+        Mitab28 exportMitab = new Mitab28(outputFile);
+        System.out.println(exportMitab.getPsiWriter().getFileName());
+
+        // Causal interactions extracted from Transcription events
+        Collection<CausalTranscription> causalTranscriptions = DataFactory.getCausalTranscription();
+        System.out.println("Number of transcription reactions: " + causalTranscriptions.size() + "\n");
+
+        for (CausalTranscription causalTranscription : causalTranscriptions) {
+            causalTranscription.writeGeneRegulation(exportMitab.getPsiWriter(), "protein");
+        }
 //
 //        // Causal interactions extracted from Translation events
 //        Collection<CausalTranslation> causalTranslations = DataFactory.getCausalTranslation();
 //        System.out.println("Number of translation reactions: " + causalTranslations.size() + "\n");
 //
 //        for (CausalTranslation causalTranslation : causalTranslations) {
-//            causalTranslation.writeRNARegulation(psiWriter);
+//            causalTranslation.writeRNARegulation(exportMitab.getPsiWriter());
 //        }
 //
 //      // TODO: Causal interactions extracted from Catalysis events
@@ -81,7 +84,7 @@ public class Main {
 //      System.out.println("number of catalysts: " + causalCatalyses.size());
 //
 //      for(CausalCatalysis cc : causalCatalyses){
-//          cc.writeCatalysis(psiWriter, activeEntities);
+//          cc.writeCatalysis(exportMitab.getPsiWriter(), activeEntities);
 //      }
 
         System.out.println();
