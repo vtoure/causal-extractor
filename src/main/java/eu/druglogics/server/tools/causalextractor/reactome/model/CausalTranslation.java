@@ -1,6 +1,6 @@
 package eu.druglogics.server.tools.causalextractor.reactome.model;
 
-import eu.druglogics.server.tools.causalextractor.mitab.PSIWriter;
+import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
 import eu.druglogics.server.tools.causalextractor.reactome.DataFactory;
 import org.reactome.server.graph.domain.model.*;
 import psidev.psi.mi.tab.model.BinaryInteraction;
