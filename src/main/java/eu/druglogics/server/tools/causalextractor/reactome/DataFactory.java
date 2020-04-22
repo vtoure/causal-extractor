@@ -37,7 +37,7 @@ public class DataFactory {
     }
     /**
      *
-     * Query: get causal interaction of a transcription (Transcription Factor bound to Target Gene)
+     * Query: get causal interaction of a transcription (transcription factor bound to target gene)
      */
     private static final String TRANSCRIPTION_WITH_TFCOMPLEX = "" +
             "MATCH (rle:BlackBoxEvent)-[:regulatedBy]->(reg:Regulation)-[:regulator]->(source:PhysicalEntity)-[:hasComponent|hasMember|hasCandidate*]->(entity:EntityWithAccessionedSequence),\n" +
