@@ -1,6 +1,6 @@
 package eu.druglogics.server.tools.causalextractor.reactome.model;
 
-import eu.druglogics.server.tools.causalextractor.mitab.PSIWriter;
+import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
 import org.reactome.server.graph.domain.model.PhysicalEntity;
 import psidev.psi.mi.tab.model.BinaryInteraction;
 import psidev.psi.mi.tab.model.BinaryInteractionImpl;
@@ -12,6 +12,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+/**
+ * This class expands complexes from Reactome into binaries in MITAB.
+ */
 
 public class ReactomeComplex {
     private PhysicalEntity complex;
@@ -44,6 +48,11 @@ public class ReactomeComplex {
     }
 
 
+    /**
+     * Expand reactome complexes in MITAB. Takes into account nested elements.
+     * @param psiWriter
+     * @throws IOException
+     */
     void writeExpansionComplex(PSIWriter psiWriter) throws IOException {
         final ArrayList<PhysicalEntity> components = new ArrayList<>(participants_stoichiometry.keySet());
 
@@ -60,6 +69,7 @@ public class ReactomeComplex {
                         AnnotationUtils.UNSPECIFIED_ROLE);
                 List<psidev.psi.mi.tab.model.Interactor> component2 = reactomeComponent2.createParticipant(psiWriter);
 
+                //create binary interaction between each components of the complex
                 for (psidev.psi.mi.tab.model.Interactor c1 : component1) {
                     for (psidev.psi.mi.tab.model.Interactor c2 : component2) {
                         BinaryInteraction binaryInteraction = new BinaryInteractionImpl(c1, c2);
