@@ -30,6 +30,7 @@ public class Main {
         // Program Arguments -h, -p, -u, -k
         SimpleJSAP jsap = new SimpleJSAP(Main.class.getName(), "Connect to Reactome Graph Database",
                 new Parameter[]{
+                        new FlaggedOption("output",JSAP.STRING_PARSER, JSAP.NO_DEFAULT, JSAP.REQUIRED,'o',"output", "The directory where the output files are written to."),
                         new FlaggedOption("host", JSAP.STRING_PARSER, "localhost", JSAP.NOT_REQUIRED, 'h', "host", "The neo4j host"),
                         new FlaggedOption("port", JSAP.STRING_PARSER, "7474", JSAP.NOT_REQUIRED, 'p', "port", "The neo4j port"),
                         new FlaggedOption("user", JSAP.STRING_PARSER, "neo4j", JSAP.NOT_REQUIRED, 'u', "user", "The neo4j user"),
@@ -54,21 +55,28 @@ public class Main {
 
         long startTime = System.currentTimeMillis();
 
+        // output directory
+        String dir = config.getString("output");
+
 
         Collection<String> activeEntities = DataFactory.getActiveEntities();
         System.out.println("active entities in Reactome: " + activeEntities.size());
 
+        ////////////////////////
+        //// Export to MITAB ///
+        ////////////////////////
+
         //Initialize PSI-MI TAB2.8 file (will contain all data)
-        String outputFile = "./results/reactome_" + genericService.getDBInfo().getVersion() + "_causality.txt";
-        Mitab28 exportMitab = new Mitab28(outputFile);
-        System.out.println(exportMitab.getPsiWriter().getFileName());
+        String mitabOutput= dir + "mitab_V" + genericService.getDBInfo().getVersion() + ".txt";
+        Mitab28 mitab = new Mitab28(mitabOutput);
+        System.out.println(mitab.getPsiWriter().getFileName());
 
         // Causal interactions extracted from Transcription events
         Collection<CausalTranscription> causalTranscriptions = DataFactory.getCausalTranscription();
         System.out.println("Number of transcription reactions: " + causalTranscriptions.size() + "\n");
 
         for (CausalTranscription causalTranscription : causalTranscriptions) {
-            causalTranscription.writeGeneRegulation(exportMitab.getPsiWriter(), "protein");
+            causalTranscription.writeGeneRegulation(mitab.getPsiWriter(), "protein");
         }
 //
 //        // Causal interactions extracted from Translation events
@@ -76,7 +84,7 @@ public class Main {
 //        System.out.println("Number of translation reactions: " + causalTranslations.size() + "\n");
 //
 //        for (CausalTranslation causalTranslation : causalTranslations) {
-//            causalTranslation.writeRNARegulation(exportMitab.getPsiWriter());
+//            causalTranslation.writeRNARegulation(mitab.getPsiWriter());
 //        }
 //
 //      // TODO: Causal interactions extracted from Catalysis events
@@ -84,7 +92,7 @@ public class Main {
 //      System.out.println("number of catalysts: " + causalCatalyses.size());
 //
 //      for(CausalCatalysis cc : causalCatalyses){
-//          cc.writeCatalysis(exportMitab.getPsiWriter(), activeEntities);
+//          cc.writeCatalysis(mitab.getPsiWriter(), activeEntities);
 //      }
 
         System.out.println();
