@@ -22,8 +22,8 @@ public class AnnotationUtils {
     private static final List<CrossReference> REACTOME_DB = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0467", "reactome")));
 
-    private static final List<CrossReference> UNSPECIFIED_METHOD = new ArrayList<>(
-            Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0686", "unspecified method")));
+    private static final List<CrossReference> INTERACTION_PREDICTION = new ArrayList<>(
+            Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0063", "interaction prediction")));
 
     //Biological roles
     static final List<CrossReference> TARGET = new ArrayList<>(
@@ -98,7 +98,7 @@ public class AnnotationUtils {
      */
     static void setDefaultInteraction(BinaryInteraction bi, ReactionLikeEvent rle, Collection<Publication> publications) {
         //Interaction detection method(s)
-        bi.setDetectionMethods(AnnotationUtils.UNSPECIFIED_METHOD);
+        bi.setDetectionMethods(AnnotationUtils.INTERACTION_PREDICTION);
 
         //Publication identifier(s)
         List<CrossReference> publication = new ArrayList<>();

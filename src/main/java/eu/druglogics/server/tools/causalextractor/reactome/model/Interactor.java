@@ -1,6 +1,6 @@
 package eu.druglogics.server.tools.causalextractor.reactome.model;
 
-import eu.druglogics.server.tools.causalextractor.mitab.PSIWriter;
+import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
 import org.reactome.server.graph.domain.model.*;
 
 import org.reactome.server.graph.service.PhysicalEntityService;
@@ -112,6 +112,24 @@ public class Interactor {
                     //The participant comes from a defined set: keep the information as an annotation
                     Annotation comment = new AnnotationImpl("comment");
                     comment.setText("defined set:" + this.entity.getStId());
+
+                    List<Annotation> annotationList = new ArrayList<>();
+                    annotationList.add(comment);
+                    participantFromSet.interactorPSI.setAnnotations(annotationList);
+                    participants.add(participantFromSet.interactorPSI);
+                }
+            }else if (this.entity instanceof CandidateSet){
+                //Create one interaction for each member of the set
+                Map<PhysicalEntity, Long> members = ((CandidateSet) this.entity).getHasCandidate().stream().collect(
+                        Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+                for (Map.Entry<PhysicalEntity, Long> entry : members.entrySet()) {
+                    Interactor participantFromSet = new Interactor(entry.getKey(), entry.getValue().intValue(), this.biologicalRole);
+                    participantFromSet.createParticipant(psiWriter);
+
+                    //The participant comes from a candidate set: keep the information as an annotation
+                    Annotation comment = new AnnotationImpl("comment");
+                    comment.setText("candidate set:" + this.entity.getStId());
 
                     List<Annotation> annotationList = new ArrayList<>();
                     annotationList.add(comment);
