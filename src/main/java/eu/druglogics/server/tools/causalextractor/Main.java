@@ -4,10 +4,10 @@ package eu.druglogics.server.tools.causalextractor;
 import com.martiansoftware.jsap.*;
 import com.martiansoftware.jsap.Parameter;
 import eu.druglogics.server.tools.causalextractor.export.Mitab28;
-import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
 import eu.druglogics.server.tools.causalextractor.reactome.DataFactory;
 
 import eu.druglogics.server.tools.causalextractor.reactome.model.CausalTranscription;
+import eu.druglogics.server.tools.causalextractor.reactome.model.CausalTranslation;
 import org.reactome.server.graph.service.GeneralService;
 
 import org.reactome.server.graph.utils.ReactomeGraphCore;
@@ -76,16 +76,16 @@ public class Main {
         System.out.println("Number of transcription reactions: " + causalTranscriptions.size() + "\n");
 
         for (CausalTranscription causalTranscription : causalTranscriptions) {
-            causalTranscription.writeGeneRegulation(mitab.getPsiWriter(), "protein");
+            causalTranscription.writeTranscription(mitab.getPsiWriter());
         }
-//
-//        // Causal interactions extracted from Translation events
-//        Collection<CausalTranslation> causalTranslations = DataFactory.getCausalTranslation();
-//        System.out.println("Number of translation reactions: " + causalTranslations.size() + "\n");
-//
-//        for (CausalTranslation causalTranslation : causalTranslations) {
-//            causalTranslation.writeRNARegulation(mitab.getPsiWriter());
-//        }
+
+        // Causal interactions extracted from Translation events
+        Collection<CausalTranslation> causalTranslations = DataFactory.getCausalTranslation();
+        System.out.println("Number of translation reactions: " + causalTranslations.size() + "\n");
+
+        for (CausalTranslation causalTranslation : causalTranslations) {
+            causalTranslation.writeTranslation(mitab.getPsiWriter());
+        }
 //
 //      // TODO: Causal interactions extracted from Catalysis events
 //      Collection<CausalCatalysis> causalCatalyses = DataFactory.getListCatalysts();

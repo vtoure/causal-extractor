@@ -44,50 +44,15 @@ public class CausalTranslation {
         return publications;
     }
 
-    /**
-     * Write the causal interaction occurring to the gene
-     * The input of a translation reaction from Reactome is an mRNA
-     *
-     * @param writerTranslation PSIWriter - object to write the causal interaction
-     * @throws IOException
-     */
-    public void writeRNARegulation(PSIWriter writerTranslation) throws IOException {
-        //SOURCE ENTITY = REGULATOR = always a COMPLEX of Ribosomes and mRNA
-        Interactor reactomeRegulator = new Interactor(this.source,1, AnnotationUtils.REGULATOR);
-        List<psidev.psi.mi.tab.model.Interactor> regulators = reactomeRegulator.createParticipant(writerTranslation);
-
-        //TARGET ENTITY = mRNA
-        Interactor reactomeTarget = new Interactor(this.input, DataFactory.getStoichiometry(this.rle, this.input), AnnotationUtils.TARGET);
-        List<psidev.psi.mi.tab.model.Interactor> targets = reactomeTarget.createParticipant(writerTranslation);
-
-        for (psidev.psi.mi.tab.model.Interactor regulator : regulators) {
-            for (psidev.psi.mi.tab.model.Interactor target : targets) {
-                //Causal PSIWriter 1: ribosome + mRNA complex regulates mRNA
-                BinaryInteraction binaryInteraction = new BinaryInteractionImpl(regulator, target);
-                AnnotationUtils.setDefaultInteraction(binaryInteraction, this.rle, this.publications);
-
-                if (this.regulation instanceof NegativeGeneExpressionRegulation) {
-                    // Gene's transcription is down-regulated
-                    binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES);
-                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSLATION_REG);
-                    writerTranslation.appendInFile(binaryInteraction);
-                } else {// Gene expression is up-regulated and enables the increase of the protein's quantity.
-                    binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES);
-                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSLATION_REG);
-                    writerTranslation.appendInFile(binaryInteraction);
-                }
-            }
-        }
-    }
 
     /**
      * Write the causal interaction occurring to the output of Reactome's reaction
-     * The output is aProtein in the case of a translation reaction
+     * The output is a Protein in the case of a translation reaction
      *
      * @param writerTranslation PSIWriter - object to write the causal interaction
      * @throws IOException
      */
-    public void writeProteinRegulation(PSIWriter writerTranslation) throws IOException {
+    public void writeTranslation(PSIWriter writerTranslation) throws IOException {
         //SOURCE ENTITY = REGULATOR = always a COMPLEX of ribosomes and mRNA
         Interactor reactomeRegulator = new Interactor(this.source, 1, AnnotationUtils.REGULATOR);
         List<psidev.psi.mi.tab.model.Interactor> regulators = reactomeRegulator.createParticipant(writerTranslation);
@@ -104,15 +69,24 @@ public class CausalTranslation {
                 binaryInteraction.setInteractionTypes(AnnotationUtils.FUNCTIONAL_ASSOCIATION);
 
                 if (this.regulation instanceof NegativeGeneExpressionRegulation) {
-                    //Write interaction between the complex and the protein
-                    binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES_REPRESSION);
-                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSLATION_REG);
-                    writerTranslation.appendInFile(binaryInteraction);
+                    if(DataFactory.getActiveEntities().contains(output.getStId())){ // the protein is active in this state
+                        binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES_ACTIVITY);
+                    }
+                    else{
+                        //Write interaction between the complex and the protein
+                        binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES_REPRESSION);
+                    }
                 } else { // Gene expression is up-regulated and enables the increase of the protein's quantity.
-                    binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES_EXPRESSION);
-                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSLATION_REG);
-                    writerTranslation.appendInFile(binaryInteraction);
+                    if(DataFactory.getActiveEntities().contains(output.getStId())){ // the protein is active in this state
+                        binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES_ACTIVITY);
+                    }
+                    else{
+                        binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES_EXPRESSION);
+                    }
+
                 }
+                binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSLATION_REG);
+                writerTranslation.appendInFile(binaryInteraction);
             }
         }
     }
