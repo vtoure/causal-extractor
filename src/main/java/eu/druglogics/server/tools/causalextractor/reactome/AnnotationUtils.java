@@ -1,4 +1,4 @@
-package eu.druglogics.server.tools.causalextractor.reactome.model;
+package eu.druglogics.server.tools.causalextractor.reactome;
 
 import org.reactome.server.graph.domain.model.*;
 import psidev.psi.mi.tab.model.*;
@@ -9,85 +9,88 @@ import java.util.*;
 
 public class AnnotationUtils {
 
-    // Databases:
-    static final String PSI_MI = "psi-mi";
-    static final String REACTOME = "reactome";
-    private static final String PUBMED = "pubmed";
 
-    static final List<CrossReference> SPOKE_EXPANSION = new ArrayList<>(
+    // Databases:
+    public static final String PSI_MI = "psi-mi";
+    public static final String REACTOME = "reactome";
+    public static final String PUBMED = "pubmed";
+    public static final String TAX_ID = "taxid";
+
+    public static final List<CrossReference> SPOKE_EXPANSION = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:1060", "spoke expansion")));
 
-    static final String TAX_ID = "taxid";
-
-    private static final List<CrossReference> REACTOME_DB = new ArrayList<>(
+    public static final List<CrossReference> REACTOME_DB = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0467", "reactome")));
 
-    private static final List<CrossReference> INTERACTION_PREDICTION = new ArrayList<>(
+    public static final List<CrossReference> INTERACTION_PREDICTION = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0063", "interaction prediction")));
 
     //Biological roles
-    static final List<CrossReference> TARGET = new ArrayList<>(
+    public static final List<CrossReference> TARGET = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2275", "regulator target")));
-    static final List<CrossReference> REGULATOR = new ArrayList<>(
+    public static final List<CrossReference> REGULATOR = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2274", "regulator")));
-    static final List<CrossReference> UNSPECIFIED_ROLE = new ArrayList<>(
+    public static final List<CrossReference> UNSPECIFIED_ROLE = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0499", "unspecified role")));
 
     //Interactor Reactome types:
-    static final List<CrossReference> COMPLEX = new ArrayList<>(
+    public static final List<CrossReference> COMPLEX = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0314", "complex")));
-    static final List<CrossReference> GENE = new ArrayList<>(
+    public static final List<CrossReference> GENE = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0250", "gene")));
-    static final List<CrossReference> RNA = new ArrayList<>(
+    public static final List<CrossReference> RNA = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0320", "ribonucleic acid")));
-    static final List<CrossReference> PROTEIN = new ArrayList<>(
+    public static final List<CrossReference> PROTEIN = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0326", "protein")));
-    static final List<CrossReference> CHEMICAL = new ArrayList<>(
+    public static final List<CrossReference> CHEMICAL = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0328", "small molecule")));
-    static final List<CrossReference> BIOPOLYMER = new ArrayList<>(
+    public static final List<CrossReference> BIOPOLYMER = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0383", "biopolymer")));
-    static final List<CrossReference> DEFINED_SET = new ArrayList<>(
+    public static final List<CrossReference> DEFINED_SET = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:1307", "defined set")));
-    static final List<CrossReference> CANDIDATE_SET = new ArrayList<>(
+    public static final List<CrossReference> CANDIDATE_SET = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:1305", "candidate set")));
-    static final List<CrossReference> UNKNOWN_PARTICIPANT = new ArrayList<>(
+    public static final List<CrossReference> UNKNOWN_PARTICIPANT = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0329", "unknown participant")));
 
-    static final List<CrossReference> FUNCTIONAL_ASSOCIATION = new ArrayList<>(
+    public static final List<CrossReference> FUNCTIONAL_ASSOCIATION = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2286", "functional association")));
 
-    static final List<CrossReference> PHYSICAL_ASSOCIATION = new ArrayList<>(
+    public static final List<CrossReference> PHYSICAL_ASSOCIATION = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:0915", "physical association")));
 
     //Causal Interactions PSI-MI
-    static final List<CrossReference> DOWN_REGULATES = new ArrayList<>(
+    public static final List<CrossReference> DOWN_REGULATES = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2240", "down-regulates")));
 
     public static final List<CrossReference> DOWN_REGULATES_ACTIVITY = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2241", "down-regulates activity")));
 
-    static final List<CrossReference> DOWN_REGULATES_REPRESSION = new ArrayList<>(
+    public static final List<CrossReference> DOWN_REGULATES_QUANTITY = new ArrayList<>(
+            Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2242", "down-regulates quantity")));
+
+    public static final List<CrossReference> DOWN_REGULATES_REPRESSION = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2243", "down-regulates quantity by repression")));
 
-    static final List<CrossReference> UP_REGULATES_EXPRESSION = new ArrayList<>(
+    public static final List<CrossReference> UP_REGULATES_EXPRESSION = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2238", "up-regulates quantity by expression")));
 
-    static final List<CrossReference> UP_REGULATES = new ArrayList<>(
+    public static final List<CrossReference> UP_REGULATES = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2235", "up-regulates")));
 
-    static final List<CrossReference> UP_REGULATES_ACTIVITY = new ArrayList<>(
+    public static final List<CrossReference> UP_REGULATES_ACTIVITY = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2236", "up-regulates activity")));
 
-    static final List<CrossReference> UP_REGULATES_QUANTITY = new ArrayList<>(
-            Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2242", "up-regulates quantity")));
+    public static final List<CrossReference> UP_REGULATES_QUANTITY = new ArrayList<>(
+            Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2237", "up-regulates quantity")));
 
-    static final List<CrossReference> TRANSCRIPTIONAL_REG = new ArrayList<>(
+    public static final List<CrossReference> TRANSCRIPTIONAL_REG = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2247", "transcriptional regulation")));
 
-    static final List<CrossReference> TRANSLATION_REG = new ArrayList<>(
+    public static final List<CrossReference> TRANSLATION_REG = new ArrayList<>(
             Collections.singleton(new CrossReferenceImpl(PSI_MI, "MI:2248", "translation regulation")));
 
-    static final List<CrossReference> UNKNOWN_ROLE = new ArrayList<>(
+    public static final List<CrossReference> UNKNOWN_ROLE = new ArrayList<>(
             Collections.singletonList(new CrossReferenceImpl(PSI_MI, "MI:0499", "unspecified role")));
 
     /**
@@ -153,7 +156,7 @@ public class AnnotationUtils {
      * @param pe PhysicalEntity
      * @return CrossReference list of compartments
      */
-    static List<CrossReference> getCompartmentPE(PhysicalEntity pe) {
+    public static List<CrossReference> getCompartmentPE(PhysicalEntity pe) {
         List<CrossReference> xrefCompartments = new ArrayList<>();
         for (Compartment cpt : pe.getCompartment()) {
             CrossReference xref = new CrossReferenceImpl();

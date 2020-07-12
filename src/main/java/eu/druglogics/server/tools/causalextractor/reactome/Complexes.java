@@ -1,4 +1,4 @@
-package eu.druglogics.server.tools.causalextractor.reactome.model;
+package eu.druglogics.server.tools.causalextractor.reactome;
 
 import org.reactome.server.graph.domain.model.PhysicalEntity;
 
