@@ -2,7 +2,9 @@ package eu.druglogics.server.tools.causalextractor.reactome;
 
 import java.util.ArrayList;
 /**
- * Singleton class of the list of complexes parsed.
+ * Singleton class of the list of active entities.
+ *
+ * @author Vasundra Touré
  */
 
 public class ActiveEntities {

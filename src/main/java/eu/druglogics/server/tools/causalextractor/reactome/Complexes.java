@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 /**
  * Singleton class of the list of complexes parsed.
+ *
+ * @author Vasundra Touré
  */
 public class Complexes {
 

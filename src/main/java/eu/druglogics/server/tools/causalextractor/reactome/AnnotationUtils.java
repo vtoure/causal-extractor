@@ -7,6 +7,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+/**
+ * Utils class - contains annotation terms
+ *
+ * @author Vasundra Touré
+ */
+
 public class AnnotationUtils {
 
 
