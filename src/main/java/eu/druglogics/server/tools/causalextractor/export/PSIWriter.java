@@ -1,11 +1,18 @@
 package eu.druglogics.server.tools.causalextractor.export;
 
+import eu.druglogics.server.tools.causalextractor.causalStatement.CausalStatement;
 import psidev.psi.mi.tab.PsimiTabWriter;
 import psidev.psi.mi.tab.model.BinaryInteraction;
 import psidev.psi.mi.tab.model.builder.PsimiTabVersion;
 
 import java.io.File;
 import java.io.IOException;
+
+/**
+ * PSI Writer to write  MITAB format
+ *
+ * @author Vasundra Touré
+ */
 
 public class PSIWriter {
 

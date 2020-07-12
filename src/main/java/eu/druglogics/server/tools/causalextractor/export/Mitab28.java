@@ -3,7 +3,9 @@ package eu.druglogics.server.tools.causalextractor.export;
 import java.io.IOException;
 
 /**
- * Export to PSI-MITAB2.8
+ * Writer for writing and getting the PSI-MITAB2.8 format
+ *
+ * @author Vasundra Touré
  */
 
 public class Mitab28 {
