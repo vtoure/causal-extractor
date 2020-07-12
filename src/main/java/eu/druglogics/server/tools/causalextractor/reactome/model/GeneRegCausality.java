@@ -1,20 +1,13 @@
 package eu.druglogics.server.tools.causalextractor.reactome.model;
 
-import eu.druglogics.server.tools.causalextractor.Main;
 import eu.druglogics.server.tools.causalextractor.causalStatement.CausalStatement;
 import eu.druglogics.server.tools.causalextractor.causalStatement.Entity;
 import eu.druglogics.server.tools.causalextractor.causalStatement.Term;
-import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
-import eu.druglogics.server.tools.causalextractor.reactome.DataFactory;
+import eu.druglogics.server.tools.causalextractor.reactome.ActiveEntities;
+import eu.druglogics.server.tools.causalextractor.reactome.AnnotationUtils;
 import org.reactome.server.graph.domain.model.*;
-import org.reactome.server.graph.service.PhysicalEntityService;
-import org.reactome.server.graph.utils.ReactomeGraphCore;
-import psidev.psi.mi.tab.model.*;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Transcription class with Objects from the Reactome Extraction factory.
@@ -24,7 +17,7 @@ import java.util.stream.Collectors;
  * @author Vasundra Touré
  */
 
-public class CausalTranscription {
+public class GeneRegCausality {
 
     private ReactionLikeEvent rle;
     private PhysicalEntity input; //input of the reaction - mainly a gene
@@ -60,120 +53,62 @@ public class CausalTranscription {
     }
 
 
-
-    public Term regulationType(){
+    /**
+     * Define the causal relationship for gene expression cases:
+     * the source either regulates the activity (if output is active) or the quantity by expression|repression
+     * @param causalStatement
+     * @return
+     */
+    public Term regulationType(CausalStatement causalStatement){
         Term effect = new Term();
-        effect.setDatabaseName("MI");
-        if (this.regulation instanceof NegativeGeneExpressionRegulation) {
+        effect.setDatabaseName(AnnotationUtils.PSI_MI);
+        if (this.regulation instanceof NegativeGeneExpressionRegulation) { //negative regulation
             if (ActiveEntities.getInstance().getList().contains(output.getStId())) { //active gene product
-                effect.setIdentifier(AnnotationUtils.DOWN_REGULATES_ACTIVITY.get(0).getIdentifier());
-                effect.addName(AnnotationUtils.DOWN_REGULATES_ACTIVITY.get(0).getText());
+                causalStatement.setEffect(AnnotationUtils.DOWN_REGULATES_ACTIVITY);
             } else {
-                effect.setIdentifier(AnnotationUtils.DOWN_REGULATES_REPRESSION.get(0).getIdentifier());
-                effect.addName(AnnotationUtils.DOWN_REGULATES_REPRESSION.get(0).getText());
+                causalStatement.setEffect(AnnotationUtils.DOWN_REGULATES_REPRESSION);
             }
         }
-        else if (this.regulation instanceof PositiveGeneExpressionRegulation) {
+        else if (this.regulation instanceof PositiveGeneExpressionRegulation) { //positive regulation
             if (ActiveEntities.getInstance().getList().contains(output.getStId())) { //active gene product
-                effect.setIdentifier(AnnotationUtils.UP_REGULATES_ACTIVITY.get(0).getIdentifier());
-                effect.addName(AnnotationUtils.UP_REGULATES_ACTIVITY.get(0).getText());
+                causalStatement.setEffect(AnnotationUtils.UP_REGULATES_ACTIVITY);
 
             } else {
-                effect.setIdentifier(AnnotationUtils.UP_REGULATES_EXPRESSION.get(0).getIdentifier());
-                effect.addName(AnnotationUtils.UP_REGULATES_EXPRESSION.get(0).getText());
+                causalStatement.setEffect(AnnotationUtils.UP_REGULATES_EXPRESSION);
             }
         }
         return effect;
     }
 
+    /**
+     * Obtain the causal statement from gene regulation reaction
+     * @param reactionType - distinguish between transcription and translation for setting the correct mechanism
+     * @return
+     */
     public CausalStatement getCausalStatement(String reactionType){
-        System.out.println(rle.getStId());
         CausalStatement causalStatement = new CausalStatement();
 
-        Entity source = new Entity();
+        Entity source = new Entity(this.source);
         source.setEntity(this.source);
 
-        Entity target = new Entity();
+        Entity target = new Entity(this.output);
         target.setEntity(this.output);
 
         causalStatement.setSource(source);
         causalStatement.setTarget(target);
-        causalStatement.setEffect(regulationType());
-        Term mechanism = new Term();
-        mechanism.setDatabaseName(AnnotationUtils.PSI_MI);
+        regulationType(causalStatement);
+
         if(reactionType == "transcription") {
-            mechanism.setIdentifier(AnnotationUtils.TRANSCRIPTIONAL_REG.get(0).getIdentifier());
-            List<String> names = new ArrayList<>();
-            mechanism.addName(AnnotationUtils.TRANSCRIPTIONAL_REG.get(0).getText());
+            causalStatement.setMechanism(AnnotationUtils.TRANSCRIPTIONAL_REG);
 
         }
         else if (reactionType == "translation"){
-            mechanism.setIdentifier(AnnotationUtils.TRANSLATION_REG.get(0).getIdentifier());
-            List<String> names = new ArrayList<>();
-            mechanism.addName(AnnotationUtils.TRANSLATION_REG.get(0).getText());
+            causalStatement.setMechanism(AnnotationUtils.TRANSLATION_REG);
 
         }
         else{
             System.out.print("Error: not transcription or translation");
         }
-        causalStatement.setMechanism(mechanism);
         return causalStatement;
     }
-
-
-    /**
-     * Write the causal interaction occurring to the gene
-     * The input of a transcription reaction from Reactome is a gene
-     *
-     * @param writerTranscription PSIWriter - object to write the causal interaction
-     * @throws IOException
-     */
-//    public void writeTranscription(PSIWriter writerTranscription) throws IOException {
-//        //SOURCE ENTITY = REGULATOR = always a COMPLEX of TF-TG
-//        Interactor reactomeRegulator = new Interactor(this.source, 1, AnnotationUtils.REGULATOR);
-//        List<psidev.psi.mi.tab.model.Interactor> regulators = reactomeRegulator.createParticipant(writerTranscription);
-//
-//        Interactor reactomeTarget;
-//        //TARGET ENTITY = output of the reaction
-//        reactomeTarget = new Interactor(this.output, DataFactory.getStoichiometry(this.rle, this.output), AnnotationUtils.TARGET);
-//
-//        List<psidev.psi.mi.tab.model.Interactor> targets = reactomeTarget.createParticipant(writerTranscription);
-//
-//        //Causal PSIWriter 1: TF-TG complex regulates the GENE
-//        for (psidev.psi.mi.tab.model.Interactor regulator : regulators) {
-//            for (psidev.psi.mi.tab.model.Interactor target : targets) {
-//                BinaryInteraction binaryInteraction = new BinaryInteractionImpl(regulator, target);
-//                AnnotationUtils.setDefaultInteraction(binaryInteraction, this.rle, this.publications);
-//                binaryInteraction.setInteractionTypes(AnnotationUtils.FUNCTIONAL_ASSOCIATION);
-//                if (this.regulation instanceof NegativeGeneExpressionRegulation) {
-//                    if (target.getInteractorTypes().get(0).equals(AnnotationUtils.RNA.get(0))) { // RNA instead of protein
-//                        binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES);
-//                    } else {
-//                        if(DataFactory.getActiveEntities().contains(output.getStId())){ // the protein is active in this state
-//                         binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES_ACTIVITY);
-//                        }
-//                        else { // no activity found for this protein state
-//                            binaryInteraction.setCausalStatement(AnnotationUtils.DOWN_REGULATES_REPRESSION);
-//                        }
-//                    }
-//                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSCRIPTIONAL_REG);
-//                    writerTranscription.appendInFile(binaryInteraction);
-//                } else {// Gene expression is up-regulated and enables the increase of the protein's quantity.
-//                    if (target.getInteractorTypes().get(0).equals(AnnotationUtils.RNA.get(0))) { // RNA instead of protein
-//                        binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES);
-//                    } else {
-//                        if (DataFactory.getActiveEntities().contains(output.getStId())) { // the protein is active in this state
-//                            binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES_ACTIVITY);
-//                        } else {// no activity found for this protein state
-//                            binaryInteraction.setCausalStatement(AnnotationUtils.UP_REGULATES_EXPRESSION);
-//                        }
-//                    }
-//
-//                    //The biological mechanism is set as "transcriptional regulation"
-//                    binaryInteraction.setCausalRegulatoryMechanism(AnnotationUtils.TRANSCRIPTIONAL_REG);
-//                    writerTranscription.appendInFile(binaryInteraction);
-//                }
-//            }
-//        }
-//    }
 }
