@@ -10,7 +10,7 @@ For more information about the extraction process, please read the documentation
 ## Installation
 
 ## Data
-The causal interactions are available in the following formats: 
+The causal interactions are available in the [results](https://github.com/vtoure/causal-extractor/tree/master/results) in the following formats: 
 * SIF
 * PSI-MITAB2.8
 
@@ -18,6 +18,7 @@ Formats planned to be supported:
 * BEL 
 
 ## Notes
+* 18/07/2020: Current export files contain causal interactions exported for human reactions. Patterns considered: transcription, translation and catalysis.
 
 ## Contact
 vasundra.toure@ntnu.no
