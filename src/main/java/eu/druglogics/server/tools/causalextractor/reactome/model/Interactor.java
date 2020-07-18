@@ -1,6 +1,8 @@
 package eu.druglogics.server.tools.causalextractor.reactome.model;
 
-import eu.druglogics.server.tools.causalextractor.mitab.PSIWriter;
+import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
+import eu.druglogics.server.tools.causalextractor.reactome.AnnotationUtils;
+import eu.druglogics.server.tools.causalextractor.reactome.Complexes;
 import org.reactome.server.graph.domain.model.*;
 
 import org.reactome.server.graph.service.PhysicalEntityService;
@@ -18,13 +20,15 @@ public class Interactor {
     private PhysicalEntity entity;
     private int stoichiometry;
     private List<CrossReference> biologicalRole;
+    private List<CrossReference> bioAct;
     private psidev.psi.mi.tab.model.Interactor interactorPSI = new psidev.psi.mi.tab.model.Interactor();
 
 
-    public Interactor(PhysicalEntity entity, int stoichiometry, List<CrossReference> biologicalRole) {
+    public Interactor(PhysicalEntity entity, int stoichiometry, List<CrossReference> biologicalRole, List<CrossReference> bioActivity) {
         this.entity = entity;
         this.stoichiometry = stoichiometry;
         this.biologicalRole = biologicalRole;
+        this.bioAct = bioActivity;
     }
 
     private void setPhysicalEntity(PhysicalEntity entity) {
@@ -42,7 +46,6 @@ public class Interactor {
 
     public List<psidev.psi.mi.tab.model.Interactor> createParticipant(PSIWriter psiWriter) throws IOException {
         List<psidev.psi.mi.tab.model.Interactor> participants = new ArrayList<>();
-
         interactorPSI.setAliases(getAliasesFromReactome(this.entity));
 
         if (this.entity instanceof EntityWithAccessionedSequence) {
@@ -70,6 +73,7 @@ public class Interactor {
             interactorPSI.setOrganism(new OrganismImpl(getMultipleSpecies(this.entity)));
 
             if (this.entity instanceof Complex) {
+
                 if (!(Complexes.getInstance().getList().contains(this.entity))) { //A complex that hasn't been parsed yet
                     Complexes.getInstance().addComplex(this.entity); //Add complex to the general list of complexes
 
@@ -90,7 +94,7 @@ public class Interactor {
                         for (PhysicalEntity component : ((Complex) this.entity).getHasComponent()) {
                             Interactor reactomeInteractor = new Interactor(component,
                                     (members.values().iterator().next().intValue()),
-                                    AnnotationUtils.UNSPECIFIED_ROLE);
+                                    AnnotationUtils.UNSPECIFIED_ROLE, null);
                             reactomeInteractor.createParticipant(psiWriter);
                         }
                     }
@@ -106,7 +110,7 @@ public class Interactor {
                         Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
                 for (Map.Entry<PhysicalEntity, Long> entry : members.entrySet()) {
-                    Interactor participantFromSet = new Interactor(entry.getKey(), entry.getValue().intValue(), this.biologicalRole);
+                    Interactor participantFromSet = new Interactor(entry.getKey(), entry.getValue().intValue(), this.biologicalRole, null);
                     participantFromSet.createParticipant(psiWriter);
 
                     //The participant comes from a defined set: keep the information as an annotation
@@ -118,10 +122,30 @@ public class Interactor {
                     participantFromSet.interactorPSI.setAnnotations(annotationList);
                     participants.add(participantFromSet.interactorPSI);
                 }
+            } else if (this.entity instanceof CandidateSet) {
+                //Create one interaction for each member of the set
+                Map<PhysicalEntity, Long> members = ((CandidateSet) this.entity).getHasCandidate().stream().collect(
+                        Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+                for (Map.Entry<PhysicalEntity, Long> entry : members.entrySet()) {
+                    Interactor participantFromSet = new Interactor(entry.getKey(), entry.getValue().intValue(), this.biologicalRole, null);
+                    participantFromSet.createParticipant(psiWriter);
+
+                    //The participant comes from a candidate set: keep the information as an annotation
+                    Annotation comment = new AnnotationImpl("comment");
+                    comment.setText("candidate set:" + this.entity.getStId());
+
+                    List<Annotation> annotationList = new ArrayList<>();
+                    annotationList.add(comment);
+                    participantFromSet.interactorPSI.setAnnotations(annotationList);
+                    participants.add(participantFromSet.interactorPSI);
+                }
             }
         }
 
-
+        if (this.bioAct != null) {
+            interactorPSI.setBiologicalEffects(this.bioAct);
+        }
         //The following metadata is the same setting for all interactors
         //Set Compartment as Xrefs
         interactorPSI.setXrefs(AnnotationUtils.getCompartmentPE(this.entity));
@@ -131,7 +155,6 @@ public class Interactor {
         interactorPSI.setBiologicalRoles(biologicalRole);
         //Unspecified parameters:
         interactorPSI.setExperimentalRoles(AnnotationUtils.UNKNOWN_ROLE);
-
         return participants;
     }
 
