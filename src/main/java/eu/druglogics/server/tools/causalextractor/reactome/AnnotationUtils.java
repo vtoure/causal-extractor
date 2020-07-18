@@ -1,5 +1,6 @@
 package eu.druglogics.server.tools.causalextractor.reactome;
 
+import eu.druglogics.server.tools.causalextractor.causalStatement.CausalStatement;
 import org.reactome.server.graph.domain.model.*;
 import psidev.psi.mi.tab.model.*;
 
@@ -98,6 +99,23 @@ public class AnnotationUtils {
 
     public static final List<CrossReference> UNKNOWN_ROLE = new ArrayList<>(
             Collections.singletonList(new CrossReferenceImpl(PSI_MI, "MI:0499", "unspecified role")));
+
+
+    public static List<CrossReference> setPublication(ReactionLikeEvent rle) {
+        List<CrossReference> reference = new ArrayList<>();
+        for (Publication pub : rle.getLiteratureReference()) {
+            if (pub != null) {
+                CrossReferenceImpl pmid = new CrossReferenceImpl();
+                if (pub instanceof LiteratureReference) {
+                    pmid.setIdentifier(((LiteratureReference) pub).getPubMedIdentifier().toString());
+                    pmid.setDatabase(AnnotationUtils.PUBMED);
+                    reference.add(pmid);
+                }
+            }
+        }
+
+        return reference;
+    }
 
     /**
      * A list of default parameters to be set about an interaction

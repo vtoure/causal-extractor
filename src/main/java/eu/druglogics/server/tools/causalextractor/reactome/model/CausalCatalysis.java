@@ -1,21 +1,28 @@
 package eu.druglogics.server.tools.causalextractor.reactome.model;
 
-import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
-import eu.druglogics.server.tools.causalextractor.reactome.DataFactory;
+import eu.druglogics.server.tools.causalextractor.causalStatement.CausalStatement;
+import eu.druglogics.server.tools.causalextractor.causalStatement.Entity;
+import eu.druglogics.server.tools.causalextractor.reactome.ActiveEntities;
+import eu.druglogics.server.tools.causalextractor.reactome.AnnotationUtils;
 import org.reactome.server.graph.domain.model.*;
-import psidev.psi.mi.tab.model.BinaryInteraction;
-import psidev.psi.mi.tab.model.BinaryInteractionImpl;
-
-import java.io.IOException;
+import psidev.psi.mi.tab.model.CrossReference;
+import psidev.psi.mi.tab.model.CrossReferenceImpl;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-
+/**
+ * Causal interactions implicating catalysis reactions
+ *
+ * @author Vasundra Touré
+ */
 
 public class CausalCatalysis {
 
     CatalystActivity catalystActivity;
-    PhysicalEntity source;
-    PhysicalEntity target;
+    PhysicalEntity catalyst;
+    Collection<PhysicalEntity> source;
+    Collection<PhysicalEntity> target;
     Boolean targetIsActive;
     Boolean negativeFeedback;
     ReactionLikeEvent reaction;
@@ -24,12 +31,16 @@ public class CausalCatalysis {
         return catalystActivity;
     }
 
-    public PhysicalEntity getSource() {
+    public Collection<PhysicalEntity> getSource() {
         return source;
     }
 
-    public PhysicalEntity getTarget() {
+    public Collection<PhysicalEntity> getTarget() {
         return target;
+    }
+
+    public PhysicalEntity getCatalyst() {
+        return catalyst;
     }
 
     public ReactionLikeEvent getReaction() {
@@ -44,37 +55,68 @@ public class CausalCatalysis {
         return negativeFeedback;
     }
 
+    private CausalStatement createCS(Entity source, PhysicalEntity pe, List<CrossReference> effect) {
+        Entity target = new Entity(pe);
+        target.setEntity(pe);
 
-    public void writeCatalysis(PSIWriter writerCatalysis, Collection<String> activEntities) throws IOException {
-       // Create Source entity of causal interaction
-        Interactor reactomeRegulator = new Interactor(this.source,
-                1,
-                AnnotationUtils.REGULATOR);
-        List<psidev.psi.mi.tab.model.Interactor> regulators = reactomeRegulator.createParticipant(writerCatalysis);
+        CausalStatement causalStatement = new CausalStatement();
+        causalStatement.setSource(source);
+        causalStatement.setEffect(effect);
+        causalStatement.setTarget(target);
+        return causalStatement;
 
-        if (activEntities.contains(this.target.getStId())) {
-            //Create Target entity of causal interaction which is the output of the reaction
-            createTarget(this.target, reactomeRegulator, writerCatalysis, regulators);
-        }
-
-        if(activEntities.contains(this.source.getStId())){
-            //Create Target entity of causal interaction which is the output of the reaction
-             createTarget(this.source, reactomeRegulator, writerCatalysis, regulators);
-        }
     }
 
-    public void createTarget(PhysicalEntity entity, Interactor reactomeRegulator, PSIWriter writerCatalysis, List<psidev.psi.mi.tab.model.Interactor> regulators) throws IOException {
-        Interactor reactomeTarget = new Interactor(entity,
-                DataFactory.getStoichiometry(this.reaction, entity),
-                AnnotationUtils.TARGET);
-        List<psidev.psi.mi.tab.model.Interactor> regulated = reactomeTarget.createParticipant(writerCatalysis);
-        for (psidev.psi.mi.tab.model.Interactor regulator : regulators) {
-            for (psidev.psi.mi.tab.model.Interactor regulatedEntity : regulated) {
-                BinaryInteraction binaryInteraction1 = new BinaryInteractionImpl(regulator, regulatedEntity);
-                AnnotationUtils.setDefaultInteraction(binaryInteraction1, this.reaction, null);
-                binaryInteraction1.setCausalStatement(AnnotationUtils.DOWN_REGULATES_ACTIVITY);
-                writerCatalysis.appendInFile(binaryInteraction1);
+    public List<CausalStatement> getCausalStatement() {
+        ArrayList<CausalStatement> listCs = new ArrayList<>();
+
+        // CATALYST = source entity
+        Entity source = new Entity(this.catalyst);
+        source.setEntity(this.catalyst);
+        List<CrossReference> bioActivity = new ArrayList<>(
+                Collections.singleton(new CrossReferenceImpl(this.catalystActivity.getActivity().getDatabaseName(),
+                        this.catalystActivity.getActivity().getAccession(), this.catalystActivity.getActivity().getName())));
+        source.setBiologicalActivity(bioActivity);
+
+        if (this.source.isEmpty() || this.target.isEmpty()) { //at least one source or target missing in the reaction
+            return null;
+
+        } else { //both source and target are present
+            for (PhysicalEntity peSource : this.source) {
+                boolean activeReactant = ActiveEntities.getInstance().getList().contains(peSource.getStId());
+                if (activeReactant) {
+                    if (peSource instanceof SimpleEntity) {
+                        if (((SimpleEntity) peSource).getReferenceEntity().getTrivial().booleanValue() == false) { //we do no generate causality on trivial entities
+                            CausalStatement causalStatement = createCS(source, peSource, AnnotationUtils.DOWN_REGULATES_ACTIVITY);
+                            listCs.add(causalStatement);
+                        }
+                    } else {
+                        CausalStatement causalStatement = createCS(source, peSource, AnnotationUtils.DOWN_REGULATES_ACTIVITY);
+                        listCs.add(causalStatement);
+                    }
+
+                }
             }
+
+            for (PhysicalEntity peTarget : this.target) {
+                boolean activeProduct = ActiveEntities.getInstance().getList().contains(peTarget.getStId());
+                if (activeProduct) {
+                    if (peTarget instanceof SimpleEntity) {
+                        if (((SimpleEntity) peTarget).getReferenceEntity().getTrivial().booleanValue() == false) {
+                            CausalStatement causalStatement = createCS(source, peTarget, AnnotationUtils.UP_REGULATES_ACTIVITY);
+                            listCs.add(causalStatement);
+                        }
+                    } else {
+                        CausalStatement causalStatement = createCS(source, peTarget, AnnotationUtils.UP_REGULATES_ACTIVITY);
+                        listCs.add(causalStatement);
+
+                    }
+                }
+            }
+
         }
+
+        return listCs;
     }
+
 }

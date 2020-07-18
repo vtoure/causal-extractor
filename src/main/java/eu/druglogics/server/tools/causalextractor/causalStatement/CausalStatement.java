@@ -1,184 +1,65 @@
 package eu.druglogics.server.tools.causalextractor.causalStatement;
 
-import java.util.ArrayList;
+import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
+import eu.druglogics.server.tools.causalextractor.reactome.model.Interactor;
+import eu.druglogics.server.tools.causalextractor.reactome.AnnotationUtils;
+import psidev.psi.mi.tab.model.BinaryInteraction;
+import psidev.psi.mi.tab.model.BinaryInteractionImpl;
+import psidev.psi.mi.tab.model.CrossReference;
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * Generation of a causal statement
+ *
+ * @author Vasundra Touré
+ */
 
 public class CausalStatement {
+    Entity source;
+    List<CrossReference> effect;
+    Entity target;
 
-    Term source;
-    Term effect;
-    Term target;
+    List<CrossReference> reference;
 
-    ArrayList<Term> reference;
-    ArrayList<Term> evidence;
-    ArrayList<Term> sourceExpSetup;
-    ArrayList<Term> targetExpSetup;
-
-    Term sourceActivity;
-    Term targetActivity;
-    Term sourceType;
-    Term targetType;
-    Term sourceTaxon;
-    Term targetTaxon;
-    Modification sourceModif;
-    Modification targetModif;
-    Term sourceCompartment;
-    Term targetCompartment;
+    List<CrossReference> interactionId;
+    List<CrossReference> interactionType;
 
     Term effectCompartment;
-    Term mechanism;
+    List<CrossReference> mechanism;
     Modification effectModif;
     Term taxon;
-    Term tissue;
-    Term cell;
 
-    public CausalStatement(Term source, Term effect, Term target, ArrayList<Term> reference, ArrayList<Term> evidence) {
-        this.source = source;
-        this.effect = effect;
-        this.target = target;
-        this.reference = reference;
-        this.evidence = evidence;
-    }
-
-    public CausalStatement(Term source, Term effect, Term target) {
-        this.source = source;
-        this.effect = effect;
-        this.target = target;
-    }
-
-    public Term getSource() {
+    public Entity getSource() {
         return source;
     }
 
-    public void setSource(Term source) {
+    public void setSource(Entity source) {
         this.source = source;
     }
 
-    public Term getEffect() {
+    public List<CrossReference> getEffect() {
         return effect;
     }
 
-    public void setEffect(Term effect) {
+    public void setEffect(List<CrossReference> effect) {
         this.effect = effect;
     }
 
-    public Term getTarget() {
+    public Entity getTarget() {
         return target;
     }
 
-    public void setTarget(Term target) {
+    public void setTarget(Entity target) {
         this.target = target;
     }
 
-    public ArrayList<Term> getReference() {
+    public List<CrossReference> getReference() {
         return reference;
     }
 
-    public void setReference(ArrayList<Term> reference) {
+    public void setReference(List<CrossReference> reference) {
         this.reference = reference;
-    }
-
-    public ArrayList<Term> getEvidence() {
-        return evidence;
-    }
-
-    public void setEvidence(ArrayList<Term> evidence) {
-        this.evidence = evidence;
-    }
-
-    public ArrayList<Term> getSourceExpSetup() {
-        return sourceExpSetup;
-    }
-
-    public void setSourceExpSetup(ArrayList<Term> sourceExpSetup) {
-        this.sourceExpSetup = sourceExpSetup;
-    }
-
-    public ArrayList<Term> getTargetExpSetup() {
-        return targetExpSetup;
-    }
-
-    public void setTargetExpSetup(ArrayList<Term> targetExpSetup) {
-        this.targetExpSetup = targetExpSetup;
-    }
-
-    public Term getSourceActivity() {
-        return sourceActivity;
-    }
-
-    public void setSourceActivity(Term sourceActivity) {
-        this.sourceActivity = sourceActivity;
-    }
-
-    public Term getTargetActivity() {
-        return targetActivity;
-    }
-
-    public void setTargetActivity(Term targetActivity) {
-        this.targetActivity = targetActivity;
-    }
-
-    public Term getSourceType() {
-        return sourceType;
-    }
-
-    public void setSourceType(Term sourceType) {
-        this.sourceType = sourceType;
-    }
-
-    public Term getTargetType() {
-        return targetType;
-    }
-
-    public void setTargetType(Term targetType) {
-        this.targetType = targetType;
-    }
-
-    public Term getSourceTaxon() {
-        return sourceTaxon;
-    }
-
-    public void setSourceTaxon(Term sourceTaxon) {
-        this.sourceTaxon = sourceTaxon;
-    }
-
-    public Term getTargetTaxon() {
-        return targetTaxon;
-    }
-
-    public void setTargetTaxon(Term targetTaxon) {
-        this.targetTaxon = targetTaxon;
-    }
-
-    public Modification getSourceModif() {
-        return sourceModif;
-    }
-
-    public void setSourceModif(Modification sourceModif) {
-        this.sourceModif = sourceModif;
-    }
-
-    public Modification getTargetModif() {
-        return targetModif;
-    }
-
-    public void setTargetModif(Modification targetModif) {
-        this.targetModif = targetModif;
-    }
-
-    public Term getSourceCompartment() {
-        return sourceCompartment;
-    }
-
-    public void setSourceCompartment(Term sourceCompartment) {
-        this.sourceCompartment = sourceCompartment;
-    }
-
-    public Term getTargetCompartment() {
-        return targetCompartment;
-    }
-
-    public void setTargetCompartment(Term targetCompartment) {
-        this.targetCompartment = targetCompartment;
     }
 
     public Term getEffectCompartment() {
@@ -189,11 +70,11 @@ public class CausalStatement {
         this.effectCompartment = effectCompartment;
     }
 
-    public Term getMechanism() {
+    public List<CrossReference> getMechanism() {
         return mechanism;
     }
 
-    public void setMechanism(Term mechanism) {
+    public void setMechanism(List<CrossReference> mechanism) {
         this.mechanism = mechanism;
     }
 
@@ -213,20 +94,38 @@ public class CausalStatement {
         this.taxon = taxon;
     }
 
-    public Term getTissue() {
-        return tissue;
+    public void setInteractionType(List<CrossReference> interactionType) {
+        this.interactionType = interactionType;
     }
 
-    public void setTissue(Term tissue) {
-        this.tissue = tissue;
+    public void setInteractionId(List<CrossReference> interactionId) {
+        this.interactionId = interactionId;
     }
 
-    public Term getCell() {
-        return cell;
-    }
+    public void writeMitab(PSIWriter writerMitab) throws IOException {
+        //SOURCE ENTITY = REGULATOR = always a COMPLEX of TF-TG
+        Interactor cs_regulator = new Interactor(this.source.entity, 1, AnnotationUtils.REGULATOR, this.source.biologicalActivity);
+        List<psidev.psi.mi.tab.model.Interactor> regulators = cs_regulator.createParticipant(writerMitab);
 
-    public void setCell(Term cell) {
-        this.cell = cell;
+
+        //Target entity = REGULATOR TARGET
+        Interactor cs_regulatorTarget = new Interactor(this.target.entity, 1, AnnotationUtils.TARGET, this.target.biologicalActivity);
+        List<psidev.psi.mi.tab.model.Interactor> regulatorTargets = cs_regulatorTarget.createParticipant(writerMitab);
+        for (psidev.psi.mi.tab.model.Interactor regulator : regulators) {
+            for (psidev.psi.mi.tab.model.Interactor regulatorTarget : regulatorTargets) {
+                BinaryInteraction binaryInteraction = new BinaryInteractionImpl(regulator, regulatorTarget);
+
+                binaryInteraction.setDetectionMethods(AnnotationUtils.INTERACTION_PREDICTION);
+                binaryInteraction.setPublications(reference);
+                binaryInteraction.setInteractionTypes(interactionType);
+                binaryInteraction.setSourceDatabases(AnnotationUtils.REACTOME_DB);
+                binaryInteraction.setInteractionAcs(interactionId);
+                binaryInteraction.setCausalRegulatoryMechanism(mechanism);
+                binaryInteraction.setCausalStatement(effect);
+
+                writerMitab.appendInFile(binaryInteraction);
+            }
+        }
     }
 }
 

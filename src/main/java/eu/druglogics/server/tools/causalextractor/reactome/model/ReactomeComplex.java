@@ -1,14 +1,13 @@
 package eu.druglogics.server.tools.causalextractor.reactome.model;
 
 import eu.druglogics.server.tools.causalextractor.export.PSIWriter;
+import eu.druglogics.server.tools.causalextractor.reactome.AnnotationUtils;
 import org.reactome.server.graph.domain.model.PhysicalEntity;
 import psidev.psi.mi.tab.model.BinaryInteraction;
 import psidev.psi.mi.tab.model.BinaryInteractionImpl;
 import psidev.psi.mi.tab.model.CrossReferenceImpl;
-
 import java.io.IOException;
 import java.util.ArrayList;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +49,8 @@ public class ReactomeComplex {
 
     /**
      * Expand reactome complexes in MITAB. Takes into account nested elements.
+     * An interaction between all components is generated
+     *
      * @param psiWriter
      * @throws IOException
      */
@@ -60,13 +61,12 @@ public class ReactomeComplex {
             for (int j = i + 1; j < components.size(); j++) {
                 Interactor reactomeComponent1 = new Interactor(components.get(i),
                         (participants_stoichiometry.get(components.get(i))).intValue(),
-                        AnnotationUtils.UNSPECIFIED_ROLE);
+                        AnnotationUtils.UNSPECIFIED_ROLE, null);
                 List<psidev.psi.mi.tab.model.Interactor> component1 = reactomeComponent1.createParticipant(psiWriter);
-
 
                 Interactor reactomeComponent2 = new Interactor(components.get(j),
                         (participants_stoichiometry.get(components.get(j))).intValue(),
-                        AnnotationUtils.UNSPECIFIED_ROLE);
+                        AnnotationUtils.UNSPECIFIED_ROLE, null);
                 List<psidev.psi.mi.tab.model.Interactor> component2 = reactomeComponent2.createParticipant(psiWriter);
 
                 //create binary interaction between each components of the complex

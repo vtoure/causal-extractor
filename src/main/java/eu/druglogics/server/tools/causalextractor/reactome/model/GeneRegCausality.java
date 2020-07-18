@@ -6,6 +6,7 @@ import eu.druglogics.server.tools.causalextractor.causalStatement.Term;
 import eu.druglogics.server.tools.causalextractor.reactome.ActiveEntities;
 import eu.druglogics.server.tools.causalextractor.reactome.AnnotationUtils;
 import org.reactome.server.graph.domain.model.*;
+import psidev.psi.mi.tab.model.CrossReferenceImpl;
 
 import java.util.*;
 
@@ -26,7 +27,6 @@ public class GeneRegCausality {
     private Regulation regulation;
     private PhysicalEntity source; // regulator of the reaction - mainly a TF-TG complex
 
-    private Collection<Publication> publications;
 
     public ReactionLikeEvent getRle() {
         return rle;
@@ -48,18 +48,15 @@ public class GeneRegCausality {
         return source;
     }
 
-    public Collection<Publication> getPublications() {
-        return publications;
-    }
-
 
     /**
      * Define the causal relationship for gene expression cases:
      * the source either regulates the activity (if output is active) or the quantity by expression|repression
+     *
      * @param causalStatement
      * @return
      */
-    public Term regulationType(CausalStatement causalStatement){
+    public Term regulationType(CausalStatement causalStatement) {
         Term effect = new Term();
         effect.setDatabaseName(AnnotationUtils.PSI_MI);
         if (this.regulation instanceof NegativeGeneExpressionRegulation) { //negative regulation
@@ -68,8 +65,7 @@ public class GeneRegCausality {
             } else {
                 causalStatement.setEffect(AnnotationUtils.DOWN_REGULATES_REPRESSION);
             }
-        }
-        else if (this.regulation instanceof PositiveGeneExpressionRegulation) { //positive regulation
+        } else if (this.regulation instanceof PositiveGeneExpressionRegulation) { //positive regulation
             if (ActiveEntities.getInstance().getList().contains(output.getStId())) { //active gene product
                 causalStatement.setEffect(AnnotationUtils.UP_REGULATES_ACTIVITY);
 
@@ -82,10 +78,11 @@ public class GeneRegCausality {
 
     /**
      * Obtain the causal statement from gene regulation reaction
+     *
      * @param reactionType - distinguish between transcription and translation for setting the correct mechanism
      * @return
      */
-    public CausalStatement getCausalStatement(String reactionType){
+    public CausalStatement getCausalStatement(String reactionType) {
         CausalStatement causalStatement = new CausalStatement();
 
         Entity source = new Entity(this.source);
@@ -98,15 +95,18 @@ public class GeneRegCausality {
         causalStatement.setTarget(target);
         regulationType(causalStatement);
 
-        if(reactionType == "transcription") {
+        causalStatement.setInteractionType(AnnotationUtils.FUNCTIONAL_ASSOCIATION);
+        causalStatement.setReference(AnnotationUtils.setPublication(rle));
+        causalStatement.setInteractionId(new ArrayList<>(
+                Collections.singletonList(new CrossReferenceImpl(AnnotationUtils.REACTOME, rle.getStId()))));
+
+        if (reactionType == "transcription") {
             causalStatement.setMechanism(AnnotationUtils.TRANSCRIPTIONAL_REG);
 
-        }
-        else if (reactionType == "translation"){
+        } else if (reactionType == "translation") {
             causalStatement.setMechanism(AnnotationUtils.TRANSLATION_REG);
 
-        }
-        else{
+        } else {
             System.out.print("Error: not transcription or translation");
         }
         return causalStatement;
